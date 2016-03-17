@@ -71,11 +71,12 @@ class Gui():
 			x=min(KOORDINATE, key=lambda a:abs(a-event.x))
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
 
+			#dodaj še en if igra.veljavna_poteza(x,y)
 			self.igra.naredi_potezo()
 
 			if self.igra.na_potezi == IGRALEC_MODRI:
 				self.pobarvaj_modro(x, y)
-				#self.nasprotnik(IGRALEC_MODRI)
+				#dodaj še igra.umesti_potezo(x,y)
 			elif self.igra.na_potezi == IGRALEC_RDECI:
 				self.pobarvaj_rdece(x, y)
 
