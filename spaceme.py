@@ -71,11 +71,13 @@ class Gui():
 			x=min(KOORDINATE, key=lambda a:abs(a-event.x))
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
 
+			self.igra.naredi_potezo()
+
 			if self.igra.na_potezi == IGRALEC_MODRI:
 				self.pobarvaj_modro(x, y)
 				#self.nasprotnik(IGRALEC_MODRI)
 			elif self.igra.na_potezi == IGRALEC_RDECI:
-				self.pobarjav_rdece(x, y)
+				self.pobarvaj_rdece(x, y)
 
 		#začasno
 		print ("Klik na {0}, {1}".format(event.x, event.y))
