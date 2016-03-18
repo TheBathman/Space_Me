@@ -51,12 +51,22 @@ class Igra():
 		else:
 			return False
 
+	def restart(self):
+		self.plosca = [[PRAZNO for y in range(S)] for x in range(S)]
+		
+		self.plosca[S-1][0]= IGRALEC_MODRI
+		self.plosca[0][S-1]= IGRALEC_RDECI
+		
+		self.na_potezi = IGRALEC_MODRI
+
 
 
 class Gui():
 
+	TAG_FIGURA = 'figura'
+
 	def __init__(self, root):
-		
+
 		#velikost okna se prilagaja velikosti polja
 		self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
 		self.plosca.grid(row=0, column=0)
@@ -68,6 +78,14 @@ class Gui():
 		root.protocol("WM_DELETE_WINDOW", lambda: self.zapri_okno(root))
 
 		self.igra = Igra()
+
+		#Glavni menu
+		menu = Menu(root)
+		root.config(menu=menu)
+		menu_moznosti = Menu(menu)
+		menu.add_cascade(label="Options", menu=menu_moznosti)
+		menu_moznosti.add_command(label="Restart", command=lambda:self.restart())
+
 
 
 	def narisi_crte(self):
@@ -115,14 +133,18 @@ class Gui():
 
 	def pobarvaj_modro(self, x, y):
 		"""Pobarva polje na modro"""
-		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue")
+		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
 		
 		
 
 	def pobarvaj_rdece(self, x, y):
 		"""Pobarva polje na rdece"""
-		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red")
+		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
 		
+	def restart(self):
+		"""Metoda pobriše kvadratke"""
+		self.plosca.delete(Gui.TAG_FIGURA)
+		self.igra.restart()
 
 	def zapri_okno(self, root):
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
