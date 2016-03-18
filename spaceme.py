@@ -26,6 +26,9 @@ class Igra():
 		#S (Size) bo vrednost, ki jo bo igralec imel možnost nastaviti v menuju z drsnikom
 		#zaenkrat bo S fiksno določen
 		self.plosca = [[PRAZNO for y in range(S)] for x in range(S)]
+		#nastavi začetni poziciji
+		self.plosca[S-1][0]= IGRALEC_MODRI
+		self.plosca[0][S-1]= IGRALEC_RDECI
 		self.na_potezi = IGRALEC_MODRI
 
 	def naredi_potezo(self):
@@ -34,12 +37,16 @@ class Igra():
 
 	def umesti_potezo(self, igralec, x, y):
 		self.plosca[y][x] = igralec
-
 		#začasno
 		print (self.plosca)
 
 	def veljavna_poteza(self, igralec, x, y):
 		if self.plosca[y][x]==PRAZNO:
+			#for i in range (-1,2):
+			#	for j in range(-1,2):
+			#		pl=self.plosca[y+i][x+j]
+			#		if not i==0 and j==0:
+			#			if pl==igralec:
 			return True
 		else:
 			return False
@@ -74,9 +81,12 @@ class Gui():
 			self.plosca.create_line(x, 50, x, mera-50)
 		for y in range (50, mera, 100):
 			self.plosca.create_line(50, y, mera-50, y)
+		#pobarvaj začetni poziciji
+		self.plosca.create_rectangle(100-49, 600-49, 100+49, 600+49, fill="blue")
+		self.plosca.create_rectangle(600-49, 100-49, 600+49, 100+49, fill="red")
 
 	def klik(self, event):
-
+		"""Naredi preveč. V prihodnje je treba razdeliti njegovo delo v druge funkcije."""
 		if 50<event.x<((S+1)*100-50) and 50<event.y<((S+1)*100-50):
 			for i in range(1, S+1):
 				KOORDINATE.append(100*i)
@@ -106,14 +116,12 @@ class Gui():
 
 	def pobarvaj_modro(self, x, y):
 		"""Pobarva polje na modro"""
-
 		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue")
 		
 		
 
 	def pobarvaj_rdece(self, x, y):
 		"""Pobarva polje na rdece"""
-
 		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red")
 		
 
