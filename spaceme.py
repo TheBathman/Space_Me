@@ -42,12 +42,12 @@ class Igra():
 
 	def veljavna_poteza(self, igralec, x, y):
 		if self.plosca[y][x]==PRAZNO:
-			#for i in range (-1,2):
-			#	for j in range(-1,2):
-			#		pl=self.plosca[y+i][x+j]
-			#		if not i==0 and j==0:
-			#			if pl==igralec:
-			return True
+			for i in range (0,S):
+				for j in range(0,S):
+					if self.plosca[i][j]==igralec:
+						if -2<(y-i)<2:
+							if -2<(x-j)<2:
+								return True
 		else:
 			return False
 
@@ -64,8 +64,7 @@ class Gui():
 		self.narisi_crte()
 
 		self.plosca.bind('<Button-1>', self.klik)
-		#self.plosca.bind('<Button-1>', self.pobarvaj_modro)
-		
+				
 		root.protocol("WM_DELETE_WINDOW", lambda: self.zapri_okno(root))
 
 		self.igra = Igra()
