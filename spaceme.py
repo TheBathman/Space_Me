@@ -32,6 +32,13 @@ class Igra():
 		#potrebuje dodatek za veljavnost poteze
 		self.na_potezi = nasprotnik(self.na_potezi)
 
+	def umesti_potezo(self, igralec, x, y):
+		self.plosca[y][x] = igralec
+
+		#začasno
+		print (self.plosca)
+
+
 
 class Gui():
 
@@ -71,17 +78,20 @@ class Gui():
 			x=min(KOORDINATE, key=lambda a:abs(a-event.x))
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
 
+			xp=(x//100)-1
+			yp=(y//100)-1
 			#dodaj še en if igra.veljavna_poteza(x,y)
 			self.igra.naredi_potezo()
 
 			if self.igra.na_potezi == IGRALEC_MODRI:
 				self.pobarvaj_modro(x, y)
-				#dodaj še igra.umesti_potezo(x,y)
+				self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+
 			elif self.igra.na_potezi == IGRALEC_RDECI:
 				self.pobarvaj_rdece(x, y)
-
+				self.igra.umesti_potezo(IGRALEC_RDECI, xp, yp)
 		#začasno
-		print ("Klik na {0}, {1}".format(event.x, event.y))
+		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		
 
 	def pobarvaj_modro(self, x, y):
