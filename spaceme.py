@@ -38,6 +38,12 @@ class Igra():
 		#začasno
 		print (self.plosca)
 
+	def veljavna_poteza(self, igralec, x, y):
+		if self.plosca[y][x]==PRAZNO:
+			return True
+		else:
+			return False
+
 
 
 class Gui():
@@ -80,16 +86,20 @@ class Gui():
 
 			xp=(x//100)-1
 			yp=(y//100)-1
-			#dodaj še en if igra.veljavna_poteza(x,y)
-			self.igra.naredi_potezo()
 
-			if self.igra.na_potezi == IGRALEC_MODRI:
-				self.pobarvaj_modro(x, y)
-				self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+			if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
 
-			elif self.igra.na_potezi == IGRALEC_RDECI:
-				self.pobarvaj_rdece(x, y)
-				self.igra.umesti_potezo(IGRALEC_RDECI, xp, yp)
+				if self.igra.na_potezi == IGRALEC_MODRI:
+					self.pobarvaj_modro(x, y)
+					self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+
+				elif self.igra.na_potezi == IGRALEC_RDECI:
+					self.pobarvaj_rdece(x, y)
+					self.igra.umesti_potezo(IGRALEC_RDECI, xp, yp)
+
+				self.igra.naredi_potezo()
+			else: 
+				print ("Zasedeno polje!")
 		#začasno
 		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		
