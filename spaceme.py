@@ -9,6 +9,7 @@ S=6
 KOORDINATE=[]
 IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
+seznam=[]
 
 def nasprotnik(igralec):
 	"Vrne nasprotnika"
@@ -31,14 +32,31 @@ class Igra():
 		self.plosca[0][S-1]= IGRALEC_RDECI
 		self.na_potezi = IGRALEC_MODRI
 
-	def naredi_potezo(self):
-		#potrebuje dodatek za veljavnost poteze
+		self.gui=Gui
+
+	def naredi_potezo(self, igralec, x, y):
+		"""Metoda zavzame nasprotnikova polja in mu preda potezo"""
+		self.plosca[y][x] = igralec
+		seznam=[((x+1)*100,(y+1)*100)]
+		for i in range (0,S):
+			for j in range(0,S):
+				if self.plosca[i][j]==nasprotnik(igralec):
+					if -2<(y-i)<2:
+						if -2<(x-j)<2:
+							self.plosca[i][j]=igralec
+							ip=(i+1)*100
+							jp=(j+1)*100
+							seznam.append((jp,ip))
+
 		self.na_potezi = nasprotnik(self.na_potezi)
+		print (self.plosca)
+		return (seznam)
 
 	def umesti_potezo(self, igralec, x, y):
-		self.plosca[y][x] = igralec
+		#self.plosca[y][x] = igralec
 		#začasno
-		print (self.plosca)
+		#print (self.plosca)
+		pass
 
 	def veljavna_poteza(self, igralec, x, y):
 		if self.plosca[y][x]==PRAZNO:
@@ -117,29 +135,36 @@ class Gui():
 			if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
 
 				if self.igra.na_potezi == IGRALEC_MODRI:
-					self.pobarvaj_modro(x, y)
-					self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+					#self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+					seznam=self.igra.naredi_potezo(IGRALEC_MODRI, xp, yp)
+					self.pobarvaj_modro(seznam)
 
 				elif self.igra.na_potezi == IGRALEC_RDECI:
-					self.pobarvaj_rdece(x, y)
-					self.igra.umesti_potezo(IGRALEC_RDECI, xp, yp)
+					seznam=self.igra.naredi_potezo(IGRALEC_RDECI, xp, yp)
+					self.pobarvaj_rdece(seznam)
 
-				self.igra.naredi_potezo()
+				
 			else: 
 				print ("Zasedeno polje!")
 		#začasno
 		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		
 
-	def pobarvaj_modro(self, x, y):
+	def pobarvaj_modro(self, seznam):
 		"""Pobarva polje na modro"""
-		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
+		for i in range(len(seznam)):
+			x=seznam[i][0]
+			y=seznam[i][1]
+			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
 		
 		
 
-	def pobarvaj_rdece(self, x, y):
+	def pobarvaj_rdece(self, seznam):
 		"""Pobarva polje na rdece"""
-		self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
+		for i in range(len(seznam)):
+			x=seznam[i][0]
+			y=seznam[i][1]
+			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
 		
 	def restart(self):
 		"""Metoda pobriše kvadratke"""
