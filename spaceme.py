@@ -10,6 +10,10 @@ KOORDINATE=[]
 IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
 seznam=[]
+IGRLACA=[IGRALEC_MODRI,IGRALEC_RDECI]
+mkonec=[]
+rkonec=[]
+konec=[False, False]
 
 def nasprotnik(igralec):
 	"Vrne nasprotnika"
@@ -32,8 +36,7 @@ class Igra():
 		self.plosca[0][S-1]= IGRALEC_RDECI
 		self.na_potezi = IGRALEC_MODRI
 
-		self.gui=Gui
-
+		
 	def naredi_potezo(self, igralec, x, y):
 		"""Metoda zavzame nasprotnikova polja in mu preda potezo"""
 		self.plosca[y][x] = igralec
@@ -77,6 +80,30 @@ class Igra():
 		
 		self.na_potezi = IGRALEC_MODRI
 
+	def preveri_konec(self):
+		for i in IGRLACA:
+			for x in range (0,S):
+				for y in range(0,S):
+					k=self.veljavna_poteza(i, x, y)
+					if i==IGRALEC_MODRI:
+						mkonec.append(k)
+					elif i==IGRALEC_RDECI:
+						rkonec.append(k)
+		for j in mkonec:
+			if j==True:
+				konec[0]=True
+				break
+		for l in rkonec:
+			if l==True:
+				konec[1]=True
+				break
+		if konec[0]==False or konec[1]==False:
+			return False
+		else: 
+			return True
+
+
+
 
 
 class Gui():
@@ -87,7 +114,7 @@ class Gui():
 
 		#velikost okna se prilagaja velikosti polja
 		self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
-		self.plosca.grid(row=0, column=0)
+		self.plosca.grid(row=1, column=0)
 
 		self.narisi_crte()
 
@@ -104,6 +131,8 @@ class Gui():
 		menu.add_cascade(label="Options", menu=menu_moznosti)
 		menu_moznosti.add_command(label="Restart", command=lambda:self.restart())
 
+		self.napis = StringVar(root, value="Space Me!")
+		Label(root, textvariable=self.napis).grid(row=0, column=0)
 
 
 	def narisi_crte(self):
@@ -132,20 +161,24 @@ class Gui():
 			xp=(x//100)-1
 			yp=(y//100)-1
 
-			if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
+			if self.igra.preveri_konec():
 
-				if self.igra.na_potezi == IGRALEC_MODRI:
-					#self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
-					seznam=self.igra.naredi_potezo(IGRALEC_MODRI, xp, yp)
-					self.pobarvaj_modro(seznam)
+				if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
 
-				elif self.igra.na_potezi == IGRALEC_RDECI:
-					seznam=self.igra.naredi_potezo(IGRALEC_RDECI, xp, yp)
-					self.pobarvaj_rdece(seznam)
+					if self.igra.na_potezi == IGRALEC_MODRI:
+						#self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+						seznam=self.igra.naredi_potezo(IGRALEC_MODRI, xp, yp)
+						self.pobarvaj_modro(seznam)
 
+					elif self.igra.na_potezi == IGRALEC_RDECI:
+						seznam=self.igra.naredi_potezo(IGRALEC_RDECI, xp, yp)
+						self.pobarvaj_rdece(seznam)
 				
-			else: 
-				print ("Zasedeno polje!")
+				else: 
+					print ("Zasedeno polje!")
+
+			else:
+				self.konec()
 		#začasno
 		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		
@@ -175,6 +208,9 @@ class Gui():
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
 		#Dejansko zapremo okno.
 		root.destroy()
+
+	def konec(self):
+		self.napis.set("Konec!")
 
 
 
