@@ -11,9 +11,6 @@ IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
 seznam=[]
 IGRLACA=[IGRALEC_MODRI,IGRALEC_RDECI]
-mkonec=[]
-rkonec=[]
-konec=[False, False]
 
 def nasprotnik(igralec):
 	"Vrne nasprotnika"
@@ -81,6 +78,9 @@ class Igra():
 		self.na_potezi = IGRALEC_MODRI
 
 	def preveri_konec(self):
+		mkonec=[]
+		rkonec=[]
+		konec=[False, False]
 		for i in IGRLACA:
 			for x in range (0,S):
 				for y in range(0,S):
@@ -166,11 +166,12 @@ class Gui():
 				if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
 
 					if self.igra.na_potezi == IGRALEC_MODRI:
-						#self.igra.umesti_potezo(IGRALEC_MODRI, xp, yp)
+						self.napis.set("Na potezi je rdeči.")
 						seznam=self.igra.naredi_potezo(IGRALEC_MODRI, xp, yp)
 						self.pobarvaj_modro(seznam)
 
 					elif self.igra.na_potezi == IGRALEC_RDECI:
+						self.napis.set("Na potezi je modri.")
 						seznam=self.igra.naredi_potezo(IGRALEC_RDECI, xp, yp)
 						self.pobarvaj_rdece(seznam)
 				
