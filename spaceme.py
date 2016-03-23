@@ -5,7 +5,7 @@ from tkinter import *
 
 PRAZNO = "."
 #zaenkrat bo velikost polja fikso določena
-S=6
+S=5
 KOORDINATE=[]
 IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
@@ -24,7 +24,7 @@ def nasprotnik(igralec):
 class Igra():
 
 	def __init__(self):
-		#za začetek bo igra na plošči 6x6
+		#za začetek bo igra na plošči SxS
 		#S (Size) bo vrednost, ki jo bo igralec imel možnost nastaviti v menuju z drsnikom
 		#zaenkrat bo S fiksno določen
 		self.plosca = [[PRAZNO for y in range(S)] for x in range(S)]
@@ -33,74 +33,47 @@ class Igra():
 		self.plosca[0][S-1]= IGRALEC_RDECI
 		self.na_potezi = IGRALEC_MODRI
 
-		
-	def naredi_potezo(self, igralec, x, y):
+	def naredi_potezo(self, x, y):
 		"""Metoda zavzame nasprotnikova polja in mu preda potezo"""
+		igralec = self.na_potezi
 		self.plosca[y][x] = igralec
-		seznam=[((x+1)*100,(y+1)*100)]
+		seznam=[(x,y)]
 		for i in range (0,S):
 			for j in range(0,S):
 				if self.plosca[i][j]==nasprotnik(igralec):
 					if -2<(y-i)<2:
 						if -2<(x-j)<2:
 							self.plosca[i][j]=igralec
-							ip=(i+1)*100
-							jp=(j+1)*100
-							seznam.append((jp,ip))
+							seznam.append((j,i))
 
 		self.na_potezi = nasprotnik(self.na_potezi)
 		print (self.plosca)
 		return (seznam)
 
-	def umesti_potezo(self, igralec, x, y):
-		#self.plosca[y][x] = igralec
-		#začasno
-		#print (self.plosca)
-		pass
+	def sosedi(self, x, y):
+		sosedi = []
+		for (dx, dy) in ((-1,-1), (-1,0), (-1,1),
+				 (0, -1),         (0, 1),
+				 (1, -1), (1, 0), (1, 1)):
+			if 0 <= x + dx < S and 0 <= y + dy < S:
+				sosedi.append((x + dx, y + dy))
+		print ("Sosedi {0} so {1}".format((x,y), sosedi))
+		return sosedi
 
-	def veljavna_poteza(self, igralec, x, y):
-		if self.plosca[y][x]==PRAZNO:
-			for i in range (0,S):
-				for j in range(0,S):
-					if self.plosca[i][j]==igralec:
-						if -2<(y-i)<2:
-							if -2<(x-j)<2:
-								return True
+	def veljavna_poteza(self, x, y):
+		if self.plosca[y][x] != PRAZNO:
+			return False
 		else:
+			for (u, v) in self.sosedi(x, y):
+				if self.plosca[v][u] == self.na_potezi:
+					return True
 			return False
 
-	def restart(self):
-		self.plosca = [[PRAZNO for y in range(S)] for x in range(S)]
-		
-		self.plosca[S-1][0]= IGRALEC_MODRI
-		self.plosca[0][S-1]= IGRALEC_RDECI
-		
-		self.na_potezi = IGRALEC_MODRI
+	def veljavne_poteze(self):
+		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(i, j)]
 
-	def preveri_konec(self):
-		mkonec=[]
-		rkonec=[]
-		konec=[False, False]
-		for i in IGRLACA:
-			for x in range (0,S):
-				for y in range(0,S):
-					k=self.veljavna_poteza(i, x, y)
-					if i==IGRALEC_MODRI:
-						mkonec.append(k)
-					elif i==IGRALEC_RDECI:
-						rkonec.append(k)
-		for j in mkonec:
-			if j==True:
-				konec[0]=True
-				break
-		for l in rkonec:
-			if l==True:
-				konec[1]=True
-				break
-		if konec[0]==False or konec[1]==False:
-			return False
-		else: 
-			return True
+	def je_konec(self):
+		return (len(self.veljavne_poteze()) == 0)
 
 
 
@@ -122,7 +95,7 @@ class Gui():
 				
 		root.protocol("WM_DELETE_WINDOW", lambda: self.zapri_okno(root))
 
-		self.igra = Igra()
+		self.igra = None # Na začetku igre sploh ni, ker se nismo začeli
 
 		#Glavni menu
 		menu = Menu(root)
@@ -133,7 +106,7 @@ class Gui():
 
 		self.napis = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis).grid(row=0, column=0)
-
+		self.restart()
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
@@ -141,13 +114,12 @@ class Gui():
 		#dokler je velikost pola fiksno določena oz. max pribl. 8 to ni problem
 		#potem bo treba za številčnejšo mrežo manjšati kvadratke
 		mera=100*(S+1)
-		for x in range (50, mera, 100):
-			self.plosca.create_line(x, 50, x, mera-50)
+		for i in range(0, S+1):
+			self.plosca.create_line(50 + 100 * i, 50, 50 + 100 * i, 100 * (S + 1) - 50)
+		# for x in range (50, mera, 100):
+		# 	self.plosca.create_line(x, 50, x, mera-50)
 		for y in range (50, mera, 100):
 			self.plosca.create_line(50, y, mera-50, y)
-		#pobarvaj začetni poziciji
-		self.plosca.create_rectangle(100-49, 600-49, 100+49, 600+49, fill="blue")
-		self.plosca.create_rectangle(600-49, 100-49, 600+49, 100+49, fill="red")
 
 	def klik(self, event):
 		"""Naredi preveč. V prihodnje je treba razdeliti njegovo delo v druge funkcije."""
@@ -161,25 +133,29 @@ class Gui():
 			xp=(x//100)-1
 			yp=(y//100)-1
 
-			if self.igra.preveri_konec():
-
-				if self.igra.veljavna_poteza(self.igra.na_potezi, xp, yp):
-
-					if self.igra.na_potezi == IGRALEC_MODRI:
-						self.napis.set("Na potezi je rdeči.")
-						seznam=self.igra.naredi_potezo(IGRALEC_MODRI, xp, yp)
-						self.pobarvaj_modro(seznam)
-
-					elif self.igra.na_potezi == IGRALEC_RDECI:
-						self.napis.set("Na potezi je modri.")
-						seznam=self.igra.naredi_potezo(IGRALEC_RDECI, xp, yp)
-						self.pobarvaj_rdece(seznam)
-				
-				else: 
-					print ("Zasedeno polje!")
-
+			if not self.igra.veljavna_poteza(xp, yp):
+				print ("Neveljavna poteza")
 			else:
+				if self.igra.na_potezi == IGRALEC_MODRI:
+					seznam=self.igra.naredi_potezo(xp, yp)
+					self.pobarvaj_modro(seznam)
+
+				elif self.igra.na_potezi == IGRALEC_RDECI:
+					seznam=self.igra.naredi_potezo(xp, yp)
+					self.pobarvaj_rdece(seznam)
+
+				else:
+					assert False, "Nisem se zmotil, to se ne bo zgodilo"
+			# Ugotavljamo, kakšno je stanje igre
+			if self.igra.je_konec():
 				self.konec()
+			elif self.igra.na_potezi == IGRALEC_MODRI:
+				self.napis.set("Na potezi je modri.")
+			elif self.igra.na_potezi == IGRALEC_RDECI:
+				self.napis.set("Na potezi je rdeči.")
+			else:
+				assert False, "Nan se nikoli ne zmoti"
+
 		#začasno
 		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		
@@ -187,8 +163,9 @@ class Gui():
 	def pobarvaj_modro(self, seznam):
 		"""Pobarva polje na modro"""
 		for i in range(len(seznam)):
-			x=seznam[i][0]
-			y=seznam[i][1]
+			(x,y) = seznam[i]
+			x = 100 * (x + 1)
+			y = 100 * (y + 1)
 			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
 		
 		
@@ -196,14 +173,17 @@ class Gui():
 	def pobarvaj_rdece(self, seznam):
 		"""Pobarva polje na rdece"""
 		for i in range(len(seznam)):
-			x=seznam[i][0]
-			y=seznam[i][1]
+			x = 100 * (seznam[i][0] + 1)
+			y = 100 * (seznam[i][1] + 1)
 			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
 		
 	def restart(self):
 		"""Metoda pobriše kvadratke"""
 		self.plosca.delete(Gui.TAG_FIGURA)
-		self.igra.restart()
+		#pobarvaj začetni poziciji
+		self.pobarvaj_modro([(0,S-1)])
+		self.pobarvaj_rdece([(S-1,0)])
+		self.igra = Igra()
 
 	def zapri_okno(self, root):
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
@@ -212,10 +192,6 @@ class Gui():
 
 	def konec(self):
 		self.napis.set("Konec!")
-
-
-
-
 
 
 #manjka še on top "menu" okno
