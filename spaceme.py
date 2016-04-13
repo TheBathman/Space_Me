@@ -21,6 +21,8 @@ def nasprotnik(igralec):
 	else:
 		assert False, "neveljaven nasprotnik"
 
+##########################################################################
+
 class Igra():
 
 	def __init__(self):
@@ -88,10 +90,23 @@ class Igra():
 		
 		return ((steviloM, steviloR))
 
+################################################################################
+class Clovek():
+
+	 def __init__(self, gui):
+	 	self.gui = gui
+
+	 def igraj(self):
+	 	pass
+	 def prekini(self):
+	 	pass
+	 def klik(self, x, y):
+	 	pass
 
 
 
 
+##############################################################################
 
 class Gui():
 
@@ -219,7 +234,8 @@ class Gui():
 			self.napis2.set("Zmagal je rdeči s {1} proti {0}.".format(stanje[0], stanje[1]))
 		else:
 			self.napis2.set("Igra je neodločena!")
-		
+
+############################################################################################		
 
 
 #manjka še on top "menu" okno
