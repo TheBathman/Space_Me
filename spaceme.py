@@ -57,7 +57,7 @@ class Igra():
 				 (1, -1), (1, 0), (1, 1)):
 			if 0 <= x + dx < S and 0 <= y + dy < S:
 				sosedi.append((x + dx, y + dy))
-		print ("Sosedi {0} so {1}".format((x,y), sosedi))
+		#print ("Sosedi {0} so {1}".format((x,y), sosedi))
 		return sosedi
 
 	def veljavna_poteza(self, x, y):
@@ -75,6 +75,20 @@ class Igra():
 	def je_konec(self):
 		return (len(self.veljavne_poteze()) == 0)
 
+	def stanje(self):
+		"Metoda na koncu igre preveri kdo je zmagal in s kakšnim rezultatom."
+		steviloM=0
+		steviloR=0
+		for i in range(S):
+			for j in range(S):
+				if self.plosca[i][j]=='M':
+					steviloM+=1
+				elif self.plosca[i][j]=='R':
+					steviloR+=1
+		
+		return ((steviloM, steviloR))
+
+
 
 
 
@@ -87,7 +101,7 @@ class Gui():
 
 		#velikost okna se prilagaja velikosti polja
 		self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
-		self.plosca.grid(row=1, column=0)
+		self.plosca.grid(row=2, column=0)
 
 		self.narisi_crte()
 
@@ -104,8 +118,12 @@ class Gui():
 		menu.add_cascade(label="Options", menu=menu_moznosti)
 		menu_moznosti.add_command(label="Restart", command=lambda:self.restart())
 
-		self.napis = StringVar(root, value="Space Me!")
-		Label(root, textvariable=self.napis).grid(row=0, column=0)
+		self.napis1 = StringVar(root, value="Space Me!")
+		Label(root, textvariable=self.napis1).grid(row=0, column=0)
+
+		self.napis2 = StringVar(root, value="Na potezi je modri.")
+		Label(root, textvariable=self.napis2).grid(row=1, column=0)
+
 		self.restart()
 
 	def narisi_crte(self):
@@ -150,9 +168,9 @@ class Gui():
 			if self.igra.je_konec():
 				self.konec()
 			elif self.igra.na_potezi == IGRALEC_MODRI:
-				self.napis.set("Na potezi je modri.")
+				self.napis2.set("Na potezi je modri.")
 			elif self.igra.na_potezi == IGRALEC_RDECI:
-				self.napis.set("Na potezi je rdeči.")
+				self.napis2.set("Na potezi je rdeči.")
 			else:
 				assert False, "Nan se nikoli ne zmoti"
 
@@ -178,11 +196,13 @@ class Gui():
 			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
 		
 	def restart(self):
-		"""Metoda pobriše kvadratke"""
+		"""Metoda ponastavi igro"""
 		self.plosca.delete(Gui.TAG_FIGURA)
 		#pobarvaj začetni poziciji
 		self.pobarvaj_modro([(0,S-1)])
 		self.pobarvaj_rdece([(S-1,0)])
+		self.napis1.set("Space Me!")
+		self.napis2.set("Na potezi je modri.")
 		self.igra = Igra()
 
 	def zapri_okno(self, root):
@@ -191,7 +211,15 @@ class Gui():
 		root.destroy()
 
 	def konec(self):
-		self.napis.set("Konec!")
+		self.napis1.set("Konec!")
+		stanje=self.igra.stanje()
+		if stanje[0]>stanje[1]:
+			self.napis2.set("Zmagal je modri s {0} proti {1}.".format(stanje[0], stanje[1]))
+		elif stanje[0]<stanje[1]:
+			self.napis2.set("Zmagal je rdeči s {1} proti {0}.".format(stanje[0], stanje[1]))
+		else:
+			self.napis2.set("Igra je neodločena!")
+		
 
 
 #manjka še on top "menu" okno
