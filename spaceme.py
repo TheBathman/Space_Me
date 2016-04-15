@@ -76,7 +76,6 @@ class Igra():
 			return False
 
 	def veljavne_poteze(self):
-		print ([(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))])
 		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
 	def je_konec(self):
@@ -119,7 +118,7 @@ class Racunalnik():
 		x = self.gui.igra.veljavne_poteze()[0][0]
 		y = self.gui.igra.veljavne_poteze()[0][1]
 
-		self.gui.naredi_potezo(100*(x+1),100*(y+1))
+		self.gui.naredi_potezo(100*(x+1), 100*(y+1))
 
 	def klik(self, x, y):
 		pass
@@ -151,8 +150,15 @@ class Gui():
 		menu = Menu(root)
 		root.config(menu=menu)
 		menu_moznosti = Menu(menu)
-		menu.add_cascade(label="Options", menu=menu_moznosti)
-		menu_moznosti.add_command(label="Restart", command=lambda:self.restart(Clovek(self), Clovek(self)))
+		menu.add_cascade(label="Možnosti", menu=menu_moznosti)
+		menu_moznosti.add_command(label="Človek proti človeku", command=lambda:
+										self.restart(Clovek(self), Clovek(self)))
+		menu_moznosti.add_command(label="Človek proti računalniku", command=lambda:
+										self.restart(Clovek(self), Racunalnik(self)))
+		menu_moznosti.add_command(label="Računalnik proti računalniku", command=lambda:
+										self.restart(Racunalnik(self), Racunalnik(self)))
+		menu_moznosti.add_command(label="Računalnik proti človeku", command=lambda:
+										self.restart(Racunalnik(self), Clovek(self)))
 
 		self.napis1 = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis1).grid(row=0, column=0)
@@ -199,19 +205,7 @@ class Gui():
 				else:
 					assert False, "Nisem se zmotil, to se ne bo zgodilo"
 
-			# Ugotavljamo, kakšno je stanje igre
-			if self.igra.je_konec():
-				self.konec()
-			elif self.igra.na_potezi == IGRALEC_MODRI:
-				self.napis2.set("Na potezi je modri.")
-				self.igralec_modri.igraj()
-			elif self.igra.na_potezi == IGRALEC_RDECI:
-				self.napis2.set("Na potezi je rdeči.")
-				self.igralec_rdeci.igraj()
-			else:
-				assert False, "Nan se nikoli ne zmoti"
-
-		#začasno
+			#začasno
 			print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		else:
 			pass
@@ -228,6 +222,17 @@ class Gui():
 
 		else:
 			assert False, "Nisem se zmotil, to se ne bo zgodilo"
+
+		if self.igra.je_konec():
+			self.konec()
+		elif self.igra.na_potezi == IGRALEC_MODRI:
+			self.napis2.set("Na potezi je modri.")
+			self.igralec_modri.igraj()
+		elif self.igra.na_potezi == IGRALEC_RDECI:
+			self.napis2.set("Na potezi je rdeči.")
+			self.igralec_rdeci.igraj()
+		else:
+			assert False, "Nan se nikoli ne zmoti"
 
 	def pobarvaj_modro(self, seznam):
 		"""Pobarva polje na modro"""
@@ -258,6 +263,7 @@ class Gui():
 
 		self.igralec_modri = igralec_modri
 		self.igralec_rdeci = igralec_rdeci
+		self.igralec_modri.igraj()
 
 	def zapri_okno(self, root):
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
