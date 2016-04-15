@@ -37,14 +37,16 @@ class Igra():
 
 	def naredi_potezo(self, x, y):
 		"""Metoda zavzame nasprotnikova polja in mu preda potezo"""
+		xp=(x//100)-1
+		yp=(y//100)-1
 		igralec = self.na_potezi
-		self.plosca[y][x] = igralec
-		seznam=[(x,y)]
+		self.plosca[yp][xp] = igralec
+		seznam=[(xp,yp)]
 		for i in range (0,S):
 			for j in range(0,S):
 				if self.plosca[i][j]==nasprotnik(igralec):
-					if -2<(y-i)<2:
-						if -2<(x-j)<2:
+					if -2<(yp-i)<2:
+						if -2<(xp-j)<2:
 							self.plosca[i][j]=igralec
 							seznam.append((j,i))
 
@@ -63,16 +65,18 @@ class Igra():
 		return sosedi
 
 	def veljavna_poteza(self, x, y):
-		if self.plosca[y][x] != PRAZNO:
+		xp=(x//100)-1
+		yp=(y//100)-1
+		if self.plosca[yp][xp] != PRAZNO:
 			return False
 		else:
-			for (u, v) in self.sosedi(x, y):
+			for (u, v) in self.sosedi(xp, yp):
 				if self.plosca[v][u] == self.na_potezi:
 					return True
 			return False
 
 	def veljavne_poteze(self):
-		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(i, j)]
+		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
 	def je_konec(self):
 		return (len(self.veljavne_poteze()) == 0)
@@ -101,7 +105,7 @@ class Clovek():
 	 def prekini(self):
 	 	pass
 	 def klik(self, x, y):
-	 	pass
+	 	self.gui.naredi_potezo(x,y)
 
 
 
@@ -124,6 +128,8 @@ class Gui():
 				
 		root.protocol("WM_DELETE_WINDOW", lambda: self.zapri_okno(root))
 
+		self.igralec_modri = None
+		self.igralec_rdeci = None
 		self.igra = None # Na začetku igre sploh ni, ker se nismo začeli
 
 		#Glavni menu
@@ -131,7 +137,7 @@ class Gui():
 		root.config(menu=menu)
 		menu_moznosti = Menu(menu)
 		menu.add_cascade(label="Options", menu=menu_moznosti)
-		menu_moznosti.add_command(label="Restart", command=lambda:self.restart())
+		menu_moznosti.add_command(label="Restart", command=lambda:self.restart(Clovek(self), Clovek(self)))
 
 		self.napis1 = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis1).grid(row=0, column=0)
@@ -139,7 +145,7 @@ class Gui():
 		self.napis2 = StringVar(root, value="Na potezi je modri.")
 		Label(root, textvariable=self.napis2).grid(row=1, column=0)
 
-		self.restart()
+		self.restart(Clovek(self), Clovek(self))
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
@@ -163,19 +169,16 @@ class Gui():
 			x=min(KOORDINATE, key=lambda a:abs(a-event.x))
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
 
-			xp=(x//100)-1
-			yp=(y//100)-1
-
-			if not self.igra.veljavna_poteza(xp, yp):
+			
+			if not self.igra.veljavna_poteza(x, y):
 				print ("Neveljavna poteza")
 			else:
 				if self.igra.na_potezi == IGRALEC_MODRI:
-					seznam=self.igra.naredi_potezo(xp, yp)
-					self.pobarvaj_modro(seznam)
+					self.igralec_modri.klik(x,y)
 
 				elif self.igra.na_potezi == IGRALEC_RDECI:
-					seznam=self.igra.naredi_potezo(xp, yp)
-					self.pobarvaj_rdece(seznam)
+					self.igralec_rdeci.klik(x,y)
+					
 
 				else:
 					assert False, "Nisem se zmotil, to se ne bo zgodilo"
@@ -190,8 +193,22 @@ class Gui():
 				assert False, "Nan se nikoli ne zmoti"
 
 		#začasno
-		print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
-		
+			print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
+		else:
+			pass
+
+	def naredi_potezo(self, x, y):
+
+		if self.igra.na_potezi == IGRALEC_MODRI:
+			seznam=self.igra.naredi_potezo(x, y)
+			self.pobarvaj_modro(seznam)
+
+		elif self.igra.na_potezi == IGRALEC_RDECI:
+					seznam=self.igra.naredi_potezo(x, y)
+					self.pobarvaj_rdece(seznam)
+
+		else:
+			assert False, "Nisem se zmotil, to se ne bo zgodilo"
 
 	def pobarvaj_modro(self, seznam):
 		"""Pobarva polje na modro"""
@@ -210,7 +227,7 @@ class Gui():
 			y = 100 * (seznam[i][1] + 1)
 			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
 		
-	def restart(self):
+	def restart(self, igralec_modri, igralec_rdeci):
 		"""Metoda ponastavi igro"""
 		self.plosca.delete(Gui.TAG_FIGURA)
 		#pobarvaj začetni poziciji
@@ -219,6 +236,9 @@ class Gui():
 		self.napis1.set("Space Me!")
 		self.napis2.set("Na potezi je modri.")
 		self.igra = Igra()
+
+		self.igralec_modri = igralec_modri
+		self.igralec_rdeci = igralec_rdeci
 
 	def zapri_okno(self, root):
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
