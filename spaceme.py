@@ -76,6 +76,7 @@ class Igra():
 			return False
 
 	def veljavne_poteze(self):
+		print ([(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))])
 		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
 	def je_konec(self):
@@ -102,12 +103,26 @@ class Clovek():
 
 	 def igraj(self):
 	 	pass
-	 def prekini(self):
-	 	pass
+
 	 def klik(self, x, y):
 	 	self.gui.naredi_potezo(x,y)
 
+############################################################################
 
+class Racunalnik():
+
+	def __init__(self, gui):
+		self.gui = gui
+
+	def igraj(self):
+		"""Metoda zaenkrat odirga prvo veljavno potezo"""
+		x = self.gui.igra.veljavne_poteze()[0][0]
+		y = self.gui.igra.veljavne_poteze()[0][1]
+
+		self.gui.naredi_potezo(100*(x+1),100*(y+1))
+
+	def klik(self, x, y):
+		pass
 
 
 ##############################################################################
@@ -145,7 +160,7 @@ class Gui():
 		self.napis2 = StringVar(root, value="Na potezi je modri.")
 		Label(root, textvariable=self.napis2).grid(row=1, column=0)
 
-		self.restart(Clovek(self), Clovek(self))
+		self.restart(Clovek(self), Racunalnik(self))
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
@@ -175,20 +190,24 @@ class Gui():
 			else:
 				if self.igra.na_potezi == IGRALEC_MODRI:
 					self.igralec_modri.klik(x,y)
+					
 
 				elif self.igra.na_potezi == IGRALEC_RDECI:
 					self.igralec_rdeci.klik(x,y)
 					
-
+				
 				else:
 					assert False, "Nisem se zmotil, to se ne bo zgodilo"
+
 			# Ugotavljamo, kakšno je stanje igre
 			if self.igra.je_konec():
 				self.konec()
 			elif self.igra.na_potezi == IGRALEC_MODRI:
 				self.napis2.set("Na potezi je modri.")
+				self.igralec_modri.igraj()
 			elif self.igra.na_potezi == IGRALEC_RDECI:
 				self.napis2.set("Na potezi je rdeči.")
+				self.igralec_rdeci.igraj()
 			else:
 				assert False, "Nan se nikoli ne zmoti"
 
@@ -204,8 +223,8 @@ class Gui():
 			self.pobarvaj_modro(seznam)
 
 		elif self.igra.na_potezi == IGRALEC_RDECI:
-					seznam=self.igra.naredi_potezo(x, y)
-					self.pobarvaj_rdece(seznam)
+			seznam=self.igra.naredi_potezo(x, y)
+			self.pobarvaj_rdece(seznam)
 
 		else:
 			assert False, "Nisem se zmotil, to se ne bo zgodilo"
