@@ -55,6 +55,7 @@ class Igra():
 		return (seznam)
 
 	def sosedi(self, x, y):
+		"""Metoda preveri, kateri so sosedi izbranega polja."""
 		sosedi = []
 		for (dx, dy) in ((-1,-1), (-1,0), (-1,1),
 				 (0, -1),         (0, 1),
@@ -65,6 +66,7 @@ class Igra():
 		return sosedi
 
 	def veljavna_poteza(self, x, y):
+		"""Metoda preverja ali je dana poteza veljavna."""
 		xp=(x//100)-1
 		yp=(y//100)-1
 		if self.plosca[yp][xp] != PRAZNO:
@@ -76,9 +78,11 @@ class Igra():
 			return False
 
 	def veljavne_poteze(self):
+		"""Metoda vrača seznam veljavnih potez."""
 		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
 	def je_konec(self):
+		"""Metoda vrne True če je igre konec."""
 		return (len(self.veljavne_poteze()) == 0)
 
 	def stanje(self):
@@ -96,7 +100,6 @@ class Igra():
 
 ################################################################################
 class Clovek():
-
 	 def __init__(self, gui):
 	 	self.gui = gui
 
@@ -109,12 +112,11 @@ class Clovek():
 ############################################################################
 
 class Racunalnik():
-
 	def __init__(self, gui):
 		self.gui = gui
 
 	def igraj(self):
-		"""Metoda zaenkrat odirga prvo veljavno potezo"""
+		"""Zaenkrat odirga prvo veljavno potezo"""
 		x = self.gui.igra.veljavne_poteze()[0][0]
 		y = self.gui.igra.veljavne_poteze()[0][1]
 
@@ -131,7 +133,6 @@ class Gui():
 	TAG_FIGURA = 'figura'
 
 	def __init__(self, root):
-
 		#velikost okna se prilagaja velikosti polja
 		self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
 		self.plosca.grid(row=2, column=0)
@@ -182,36 +183,32 @@ class Gui():
 			self.plosca.create_line(50, y, mera-50, y)
 
 	def klik(self, event):
-		"""Naredi preveč. V prihodnje je treba razdeliti njegovo delo v druge funkcije."""
+		"""Pretvori klik v koordinate."""
 		if 50<event.x<((S+1)*100-50) and 50<event.y<((S+1)*100-50):
 			for i in range(1, S+1):
 				KOORDINATE.append(100*i)
 
 			x=min(KOORDINATE, key=lambda a:abs(a-event.x))
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
-
 			
 			if not self.igra.veljavna_poteza(x, y):
 				print ("Neveljavna poteza")
 			else:
 				if self.igra.na_potezi == IGRALEC_MODRI:
 					self.igralec_modri.klik(x,y)
-					
-
+				
 				elif self.igra.na_potezi == IGRALEC_RDECI:
 					self.igralec_rdeci.klik(x,y)
 					
-				
 				else:
 					assert False, "Nisem se zmotil, to se ne bo zgodilo"
-
 			#začasno
 			print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		else:
 			pass
 
 	def naredi_potezo(self, x, y):
-
+		"""Metoda naredi potezo in spremeni napis o stanju"""
 		if self.igra.na_potezi == IGRALEC_MODRI:
 			seznam=self.igra.naredi_potezo(x, y)
 			self.pobarvaj_modro(seznam)
@@ -242,8 +239,6 @@ class Gui():
 			y = 100 * (y + 1)
 			self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
 		
-		
-
 	def pobarvaj_rdece(self, seznam):
 		"""Pobarva polje na rdece"""
 		for i in range(len(seznam)):
@@ -271,6 +266,7 @@ class Gui():
 		root.destroy()
 
 	def konec(self):
+		"""Izpiše zmagovalca in rezultat."""
 		self.napis1.set("Konec!")
 		stanje=self.igra.stanje()
 		if stanje[0]>stanje[1]:
