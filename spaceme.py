@@ -98,6 +98,13 @@ class Igra():
 		
 		return ((steviloM, steviloR))
 
+	def kopija(self):
+		"""Vrne kopijo igre"""
+		k = Igra()
+		k.plosca = [self.plosca[i][:] for i in range(S)]
+		k.na_potezi = self.na_potezi
+		return k
+
 ################################################################################
 class Clovek():
 	 def __init__(self, gui):
@@ -112,19 +119,34 @@ class Clovek():
 ############################################################################
 
 class Racunalnik():
-	def __init__(self, gui):
+	def __init__(self, gui, algoritem):
 		self.gui = gui
+		self.algoritem = algoritem
 
 	def igraj(self):
 		"""Zaenkrat odirga prvo veljavno potezo"""
-		x = self.gui.igra.veljavne_poteze()[0][0]
-		y = self.gui.igra.veljavne_poteze()[0][1]
-
+		#x = self.gui.igra.veljavne_poteze()[0][0]
+		#y = self.gui.igra.veljavne_poteze()[0][1]
+		(x,y)=self.algoritem.izracunaj_potezo(self.gui.igra.kopija())
 		self.gui.naredi_potezo(100*(x+1), 100*(y+1))
+
 
 	def klik(self, x, y):
 		pass
+################################################################################
+class Minimax():
+	def __init__(self):
+		#self.globina = globina
+		self.igra = None
+		self.igram = None
+		self.poteza = None
 
+	def izracunaj_potezo(self, igra):
+		self.igra = igra
+		x = self.igra.veljavne_poteze()[0][0]
+		y = self.igra.veljavne_poteze()[0][1]
+
+		return (x,y)	
 
 ##############################################################################
 
@@ -155,11 +177,11 @@ class Gui():
 		menu_moznosti.add_command(label="Človek proti človeku", command=lambda:
 										self.restart(Clovek(self), Clovek(self)))
 		menu_moznosti.add_command(label="Človek proti računalniku", command=lambda:
-										self.restart(Clovek(self), Racunalnik(self)))
+										self.restart(Clovek(self), Racunalnik(self, Minimax())))
 		menu_moznosti.add_command(label="Računalnik proti računalniku", command=lambda:
-										self.restart(Racunalnik(self), Racunalnik(self)))
+										self.restart(Racunalnik(self, Minimax()), Racunalnik(self)))
 		menu_moznosti.add_command(label="Računalnik proti človeku", command=lambda:
-										self.restart(Racunalnik(self), Clovek(self)))
+										self.restart(Racunalnik(self, Minimax()), Clovek(self)))
 
 		self.napis1 = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis1).grid(row=0, column=0)
@@ -167,7 +189,7 @@ class Gui():
 		self.napis2 = StringVar(root, value="Na potezi je modri.")
 		Label(root, textvariable=self.napis2).grid(row=1, column=0)
 
-		self.restart(Clovek(self), Racunalnik(self))
+		self.restart(Clovek(self), Racunalnik(self, Minimax()))
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
