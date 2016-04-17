@@ -34,6 +34,7 @@ class Igra():
 		self.plosca[S-1][0]= IGRALEC_MODRI
 		self.plosca[0][S-1]= IGRALEC_RDECI
 		self.na_potezi = IGRALEC_MODRI
+		self.zgodovina = []
 
 	def naredi_potezo(self, x, y):
 		"""Metoda zavzame nasprotnikova polja in mu preda potezo"""
@@ -97,15 +98,15 @@ class Igra():
 				elif self.plosca[i][j]=='R':
 					steviloR+=1
 		if steviloM < steviloR:
-			zmagovalec = 'rdeči'
+			zmagovalec = IGRALEC_RDECI
 		elif steviloM > steviloR:
-			zmagovalec = 'modri'
+			zmagovalec = IGRALEC_MODRI
 		elif steviloM == steviloR:
-			zmagovalec = 'neodločeno'
+			zmagovalec = NEODLOČENO
 		else:
 			assert False, "Pri izračunu stanja je šlo nekaj narobe."
 		
-		return ((zmagovalec, steviloM, steviloR))
+		return ((steviloM, steviloR, zmagovalec))
 
 	def kopija(self):
 		"""Vrne kopijo igre"""
@@ -113,6 +114,15 @@ class Igra():
 		k.plosca = [self.plosca[i][:] for i in range(S)]
 		k.na_potezi = self.na_potezi
 		return k
+
+	def shrani_pozicijo(self):
+		"""Shrani trenutno pozicijo."""
+		p = [self.plosca[i][:] for i in range(S)]
+		self.zgodovina.append((p, self.na_potezi))
+
+	def razveljavi(self):
+		"""Razveljavi potezo in se vrni v prejšnje stanje."""
+		(self.plosca, self.na_potezi) = self.zgodovina.pop()
 
 ################################################################################
 class Clovek():
@@ -143,29 +153,73 @@ class Racunalnik():
 		
 ################################################################################
 
-class Minimax():
+class Easy():
 	def __init__(self):
-		#self.globina = globina
+		self.igra = None
+
+	def izracunaj_potezo(self, igra):
+		self.igra = igra
+		x = self.igra.veljavne_poteze()[0][0]
+		y = self.igra.veljavne_poteze()[0][1]
+		return (x,y)
+
+###############################################################
+class Minimax():
+	def __init__(self, globina):
+		self.globina = globina
 		self.igra = None
 		self.igram = None
 		self.poteza = None
 
 	def izracunaj_potezo(self, igra):
 		self.igra = igra
-		x = self.igra.veljavne_poteze()[0][0]
-		y = self.igra.veljavne_poteze()[0][1]
-		return (x,y)	
-		#self.igra = igra
-		#self.igram = self.igra.na_potezi
-		#self.poteza = None
+		self.igram = self.igra.na_potezi
+		self.poteza = None
 
 	ZMAGA = 1000000
 	NESKONCNO = ZMAGA + 1
 
-	#def minimax(self, globina, maxiAliMini):
+	def minimax(self, globina, maksimiziramo):
+
+		if self.igra.je_konec():
+			stanje = self.igra.stanje()
+			zmagovalec = stanje[2]
+			if zmagovalec == self.igram:
+				return (None, Minimax.ZMAGA)
+			elif zmagovalec == nasprotnik(self.igram):
+				return (None, -Minimax.ZMAGA)
+			else:
+				return (None, 0)
+		else:
+			if globina == 0:
+				return (None, self.vrednost_pozicije())
+			else:
+				if maksimiziramo:
+					najboljsa_poteza = None
+					vrednost_najboljse = -Minimax.NESKONCNO
+					for poteza in self.igra.veljavne_poteze():
+						self.igra.naredi_potezo(poteza[0], poteza[1])
+						vrednost = self.minimax(globina-1, not maksimiziramo)[1]
+						self.igra.razveljavi()
+						if vrednost > vrednost_najboljse:
+							vrednost_najboljse = vrednost
+							najboljsa_poteza = poteza
+				else:
+					najboljsa_poteza = None
+					vrednost_najboljse = Minimax.NESKONCNO
+					for poteza in self.igra.veljavne_poteze():
+						self.igra.naredi_potezo(poteza[0], poteza[1])
+						vrednost = self.minimax(globina-1, not maksimiziramo)[1]
+						self.igra.razveljavi()
+						if vrednost < vrednost_najboljse:
+							vrednost_najboljse = vrednost
+							najboljsa_poteza = poteza
+
+				assert (najboljsa_poteza is not None), "minimax: izračunana poteza je None"
+				return (najboljsa_poteza, vrednost_najboljse)
 
 
-		#if self.igra.je_konec():
+
 
 
 
@@ -199,11 +253,11 @@ class Gui():
 		menu_moznosti.add_command(label="Človek proti človeku", command=lambda:
 										self.restart(Clovek(self), Clovek(self)))
 		menu_moznosti.add_command(label="Človek proti računalniku", command=lambda:
-										self.restart(Clovek(self), Racunalnik(self, Minimax())))
+										self.restart(Clovek(self), Racunalnik(self, Easy())))
 		menu_moznosti.add_command(label="Računalnik proti računalniku", command=lambda:
-										self.restart(Racunalnik(self, Minimax()), Racunalnik(self)))
+										self.restart(Racunalnik(self, Easy()), Racunalnik(self, Easy())))
 		menu_moznosti.add_command(label="Računalnik proti človeku", command=lambda:
-										self.restart(Racunalnik(self, Minimax()), Clovek(self)))
+										self.restart(Racunalnik(self, Easy()), Clovek(self)))
 
 		self.napis1 = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis1).grid(row=0, column=0)
@@ -211,7 +265,7 @@ class Gui():
 		self.napis2 = StringVar(root, value="Na potezi je modri.")
 		Label(root, textvariable=self.napis2).grid(row=1, column=0)
 
-		self.restart(Clovek(self), Racunalnik(self, Minimax()))
+		self.restart(Clovek(self), Racunalnik(self, Easy()))
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
@@ -313,10 +367,12 @@ class Gui():
 		"""Izpiše zmagovalca in rezultat."""
 		self.napis1.set("Konec!")
 		stanje=self.igra.stanje()
-		if stanje[0]=='neodločeno':
-			self.napis2.set("Igra je neodločena!")
+		if stanje[0]>stanje[1]:
+			self.napis2.set("Zmagal je modri s {0} proti {1}.".format(stanje[0], stanje[1]))
+		elif stanje[0]<stanje[1]:
+			self.napis2.set("Zmagal je rdeči s {1} proti {0}.".format(stanje[0], stanje[1]))
 		else:
-			self.napis2.set("Zmagal je {0} s {1} proti {2}.".format(stanje[0], stanje[1], stanje[2]))
+			self.napis2.set("Igra je neodločena!")
 		
 			
 
