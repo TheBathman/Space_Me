@@ -79,7 +79,8 @@ class Igra():
 
 	def veljavne_poteze(self):
 		"""Metoda vrača seznam veljavnih potez."""
-		return [(i,j) for i in range(S) for j in range(S) if self.veljavna_poteza(100*(i+1), 100*(j+1))]
+		return [(i,j) for i in range(S) for j in range(S) if 
+				self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
 	def je_konec(self):
 		"""Metoda vrne True če je igre konec."""
@@ -95,8 +96,16 @@ class Igra():
 					steviloM+=1
 				elif self.plosca[i][j]=='R':
 					steviloR+=1
+		if steviloM < steviloR:
+			zmagovalec = 'rdeči'
+		elif steviloM > steviloR:
+			zmagovalec = 'modri'
+		elif steviloM == steviloR:
+			zmagovalec = 'neodločeno'
+		else:
+			assert False, "Pri izračunu stanja je šlo nekaj narobe."
 		
-		return ((steviloM, steviloR))
+		return ((zmagovalec, steviloM, steviloR))
 
 	def kopija(self):
 		"""Vrne kopijo igre"""
@@ -125,15 +134,15 @@ class Racunalnik():
 
 	def igraj(self):
 		"""Zaenkrat odirga prvo veljavno potezo"""
-		#x = self.gui.igra.veljavne_poteze()[0][0]
-		#y = self.gui.igra.veljavne_poteze()[0][1]
 		(x,y)=self.algoritem.izracunaj_potezo(self.gui.igra.kopija())
 		self.gui.naredi_potezo(100*(x+1), 100*(y+1))
 
 
 	def klik(self, x, y):
 		pass
+		
 ################################################################################
+
 class Minimax():
 	def __init__(self):
 		#self.globina = globina
@@ -145,8 +154,21 @@ class Minimax():
 		self.igra = igra
 		x = self.igra.veljavne_poteze()[0][0]
 		y = self.igra.veljavne_poteze()[0][1]
-
 		return (x,y)	
+		#self.igra = igra
+		#self.igram = self.igra.na_potezi
+		#self.poteza = None
+
+	ZMAGA = 1000000
+	NESKONCNO = ZMAGA + 1
+
+	#def minimax(self, globina, maxiAliMini):
+
+
+		#if self.igra.je_konec():
+
+
+
 
 ##############################################################################
 
@@ -291,12 +313,12 @@ class Gui():
 		"""Izpiše zmagovalca in rezultat."""
 		self.napis1.set("Konec!")
 		stanje=self.igra.stanje()
-		if stanje[0]>stanje[1]:
-			self.napis2.set("Zmagal je modri s {0} proti {1}.".format(stanje[0], stanje[1]))
-		elif stanje[0]<stanje[1]:
-			self.napis2.set("Zmagal je rdeči s {1} proti {0}.".format(stanje[0], stanje[1]))
-		else:
+		if stanje[0]=='neodločeno':
 			self.napis2.set("Igra je neodločena!")
+		else:
+			self.napis2.set("Zmagal je {0} s {1} proti {2}.".format(stanje[0], stanje[1], stanje[2]))
+		
+			
 
 ############################################################################################		
 
