@@ -11,6 +11,7 @@ IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
 seznam=[]
 IGRLACA=[IGRALEC_MODRI,IGRALEC_RDECI]
+MINIMAX_GLOBINA=3
 
 def nasprotnik(igralec):
 	"Vrne nasprotnika"
@@ -52,7 +53,8 @@ class Igra():
 							seznam.append((j,i))
 
 		self.na_potezi = nasprotnik(self.na_potezi)
-		print (self.plosca)
+		self.shrani_pozicijo()
+		#print (self.plosca)
 		return (seznam)
 
 	def sosedi(self, x, y):
@@ -145,7 +147,9 @@ class Racunalnik():
 	def igraj(self):
 		"""Zaenkrat odirga prvo veljavno potezo"""
 		(x,y)=self.algoritem.izracunaj_potezo(self.gui.igra.kopija())
+		print ("minimax je izračunal x={0} y={1}".format(x,y))
 		self.gui.naredi_potezo(100*(x+1), 100*(y+1))
+
 
 
 	def klik(self, x, y):
@@ -175,6 +179,14 @@ class Minimax():
 		self.igra = igra
 		self.igram = self.igra.na_potezi
 		self.poteza = None
+
+		(poteza, vrednost) = self.minimax(self.globina, True)
+		self.igra = None
+		self.igram = None
+
+		print ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
+		self.poteza = poteza
+		return poteza
 
 	ZMAGA = 1000000
 	NESKONCNO = ZMAGA + 1
@@ -218,6 +230,24 @@ class Minimax():
 				assert (najboljsa_poteza is not None), "minimax: izračunana poteza je None"
 				return (najboljsa_poteza, vrednost_najboljse)
 
+	def vrednost_pozicije(self):
+		vrednost = 0
+		stM=0
+		stR=0
+		for i in range(S):
+			for j in range(S):
+				if self.igra.plosca[i][j]=='M':
+					stM+=1
+				elif self.igra.plosca[i][j]=='R':
+					stR+=1
+		if self.igram == IGRALEC_MODRI:
+			vrednost = (stM-stR)
+			return vrednost
+		elif self.igram == IGRALEC_RDECI:
+			vrednost = (stR-stM)
+			return vrednost
+		else:
+			assert False, "Vrednost pozicij ima neveljavnega igralca."
 
 
 
@@ -230,7 +260,7 @@ class Gui():
 
 	TAG_FIGURA = 'figura'
 
-	def __init__(self, root):
+	def __init__(self, root, globina):
 		#velikost okna se prilagaja velikosti polja
 		self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
 		self.plosca.grid(row=2, column=0)
@@ -253,11 +283,11 @@ class Gui():
 		menu_moznosti.add_command(label="Človek proti človeku", command=lambda:
 										self.restart(Clovek(self), Clovek(self)))
 		menu_moznosti.add_command(label="Človek proti računalniku", command=lambda:
-										self.restart(Clovek(self), Racunalnik(self, Easy())))
+										self.restart(Clovek(self), Racunalnik(self, Minimax(globina))))
 		menu_moznosti.add_command(label="Računalnik proti računalniku", command=lambda:
-										self.restart(Racunalnik(self, Easy()), Racunalnik(self, Easy())))
+										self.restart(Racunalnik(self, Minimax(globina)), Racunalnik(self, Minimax(globina))))
 		menu_moznosti.add_command(label="Računalnik proti človeku", command=lambda:
-										self.restart(Racunalnik(self, Easy()), Clovek(self)))
+										self.restart(Racunalnik(self, Minimax(globina)), Clovek(self)))
 
 		self.napis1 = StringVar(root, value="Space Me!")
 		Label(root, textvariable=self.napis1).grid(row=0, column=0)
@@ -265,7 +295,7 @@ class Gui():
 		self.napis2 = StringVar(root, value="Na potezi je modri.")
 		Label(root, textvariable=self.napis2).grid(row=1, column=0)
 
-		self.restart(Clovek(self), Racunalnik(self, Easy()))
+		self.restart(Clovek(self), Racunalnik(self, Minimax(globina)))
 
 	def narisi_crte(self):
 		"""Nariše črte igralnega polja"""
@@ -385,6 +415,6 @@ if __name__ == "__main__":
 	root = Tk()
 	root.title("SpaceMe")
 	#manjkajo stavri, za katere ne vem kaj bodo počele
-	aplikacija = Gui(root)
+	aplikacija = Gui(root, MINIMAX_GLOBINA)
 
 	root.mainloop()
