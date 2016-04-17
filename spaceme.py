@@ -1,5 +1,6 @@
 from tkinter import *
 import threading
+import logging
 
 
 
@@ -54,7 +55,7 @@ class Igra():
 
 		self.na_potezi = nasprotnik(self.na_potezi)
 		self.shrani_pozicijo()
-		#print (self.plosca)
+		#logging.debug (self.plosca)
 		return (seznam)
 
 	def sosedi(self, x, y):
@@ -65,7 +66,7 @@ class Igra():
 				 (1, -1), (1, 0), (1, 1)):
 			if 0 <= x + dx < S and 0 <= y + dy < S:
 				sosedi.append((x + dx, y + dy))
-		#print ("Sosedi {0} so {1}".format((x,y), sosedi))
+		#logging.debug ("Sosedi {0} so {1}".format((x,y), sosedi))
 		return sosedi
 
 	def veljavna_poteza(self, x, y):
@@ -158,7 +159,7 @@ class Racunalnik():
 		if self.algoritem.poteza is not None:
 			(x,y)=self.algoritem.poteza
 			self.gui.naredi_potezo(100*(x+1), 100*(y+1))
-			print ("minimax je izračunal x={0} y={1}".format(x,y))
+			logging.debug ("minimax je izračunal x={0} y={1}".format(x,y))
 		else:
 			self.gui.plosca.after(100, self.preveri_potezo)
 
@@ -207,7 +208,7 @@ class Minimax():
 		self.igram = None
 
 		if not self.prekinitev:
-			print ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
+			logging.debug ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
 			self.poteza = poteza
 			return poteza
 
@@ -217,7 +218,7 @@ class Minimax():
 	def minimax(self, globina, maksimiziramo):
 
 		if self.prekinitev:
-			print ("Minimax prekinja.")
+			logging.debug ("Minimax prekinja.")
 			return (None, 0)
 		if self.igra.je_konec():
 			stanje = self.igra.stanje()
@@ -346,7 +347,7 @@ class Gui():
 			y=min(KOORDINATE, key=lambda b:abs(b-event.y))
 			
 			if not self.igra.veljavna_poteza(x, y):
-				print ("Neveljavna poteza")
+				logging.debug ("Neveljavna poteza")
 			else:
 				if self.igra.na_potezi == IGRALEC_MODRI:
 					self.igralec_modri.klik(x,y)
@@ -357,7 +358,7 @@ class Gui():
 				else:
 					assert False, "Nisem se zmotil, to se ne bo zgodilo"
 			#začasno
-			print ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
+			logging.debug ("Klik na {0}, {1}, x je {2}, y je {3}".format(event.x, event.y, x, y))
 		else:
 			pass
 
