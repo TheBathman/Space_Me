@@ -1,5 +1,5 @@
 from tkinter import *
-
+import threading
 
 
 
@@ -133,6 +133,8 @@ class Clovek():
 
 	 def igraj(self):
 	 	pass
+	 def prekini(self):
+	 	pass
 
 	 def klik(self, x, y):
 	 	self.gui.naredi_potezo(x,y)
@@ -143,13 +145,28 @@ class Racunalnik():
 	def __init__(self, gui, algoritem):
 		self.gui = gui
 		self.algoritem = algoritem
+		self.mislec = None
 
 	def igraj(self):
 		"""Zaenkrat odirga prvo veljavno potezo"""
-		(x,y)=self.algoritem.izracunaj_potezo(self.gui.igra.kopija())
-		print ("minimax je izračunal x={0} y={1}".format(x,y))
-		self.gui.naredi_potezo(100*(x+1), 100*(y+1))
+		self.mislec = threading.Thread(target=lambda:
+					self.algoritem.izracunaj_potezo(self.gui.igra.kopija()))
+		self.mislec.start()
+		self.gui.plosca.after(100, self.preveri_potezo)
 
+	def preveri_potezo(self):
+		if self.algoritem.poteza is not None:
+			(x,y)=self.algoritem.poteza
+			self.gui.naredi_potezo(100*(x+1), 100*(y+1))
+			print ("minimax je izračunal x={0} y={1}".format(x,y))
+		else:
+			self.gui.plosca.after(100, self.preveri_potezo)
+
+	def prekini(self):
+		if self.mislec:
+			self.algoritem.prekini()
+			self.mislec.join()
+			self.mislec = None
 
 
 	def klik(self, x, y):
@@ -174,25 +191,34 @@ class Minimax():
 		self.igra = None
 		self.igram = None
 		self.poteza = None
+		self.prekinitev = None
+
+	def prekini(self):
+		self.prekinitev = True
 
 	def izracunaj_potezo(self, igra):
 		self.igra = igra
 		self.igram = self.igra.na_potezi
 		self.poteza = None
+		self.prekinitev = False
 
 		(poteza, vrednost) = self.minimax(self.globina, True)
 		self.igra = None
 		self.igram = None
 
-		print ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
-		self.poteza = poteza
-		return poteza
+		if not self.prekinitev:
+			print ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
+			self.poteza = poteza
+			return poteza
 
 	ZMAGA = 1000000
 	NESKONCNO = ZMAGA + 1
 
 	def minimax(self, globina, maksimiziramo):
 
+		if self.prekinitev:
+			print ("Minimax prekinja.")
+			return (None, 0)
 		if self.igra.je_konec():
 			stanje = self.igra.stanje()
 			zmagovalec = stanje[2]
@@ -376,6 +402,7 @@ class Gui():
 		
 	def restart(self, igralec_modri, igralec_rdeci):
 		"""Metoda ponastavi igro"""
+		self.prekini_igralce()
 		self.plosca.delete(Gui.TAG_FIGURA)
 		#pobarvaj začetni poziciji
 		self.pobarvaj_modro([(0,S-1)])
@@ -388,8 +415,15 @@ class Gui():
 		self.igralec_rdeci = igralec_rdeci
 		self.igralec_modri.igraj()
 
+	def prekini_igralce(self):
+		if self.igralec_modri:
+			self.igralec_modri.prekini()
+		if self.igralec_rdeci:
+			self.igralec_rdeci.prekini()
+
 	def zapri_okno(self, root):
 		"""Ta metoda se pokliče, ko uporabnik zapre aplikacijo."""
+		self.prekini_igralce()
 		#Dejansko zapremo okno.
 		root.destroy()
 
