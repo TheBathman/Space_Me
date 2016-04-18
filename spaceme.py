@@ -83,6 +83,8 @@ class Igra():
 
 	def veljavne_poteze(self):
 		"""Metoda vrača seznam veljavnih potez."""
+		#print ([(i,j) for i in range(S) for j in range(S) if 
+		#		self.veljavna_poteza(100*(i+1), 100*(j+1))])
 		return [(i,j) for i in range(S) for j in range(S) if 
 				self.veljavna_poteza(100*(i+1), 100*(j+1))]
 
@@ -237,7 +239,7 @@ class Minimax():
 					najboljsa_poteza = None
 					vrednost_najboljse = -Minimax.NESKONCNO
 					for poteza in self.igra.veljavne_poteze():
-						self.igra.naredi_potezo(poteza[0], poteza[1])
+						self.igra.naredi_potezo((poteza[0]+1)*100, (poteza[1])*100)
 						vrednost = self.minimax(globina-1, not maksimiziramo)[1]
 						self.igra.razveljavi()
 						if vrednost > vrednost_najboljse:
@@ -247,7 +249,7 @@ class Minimax():
 					najboljsa_poteza = None
 					vrednost_najboljse = Minimax.NESKONCNO
 					for poteza in self.igra.veljavne_poteze():
-						self.igra.naredi_potezo(poteza[0], poteza[1])
+						self.igra.naredi_potezo((poteza[0]+1)*100, (poteza[1])*100)
 						vrednost = self.minimax(globina-1, not maksimiziramo)[1]
 						self.igra.razveljavi()
 						if vrednost < vrednost_najboljse:
