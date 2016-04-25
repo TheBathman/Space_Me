@@ -6,7 +6,7 @@ import logging
 
 PRAZNO = "."
 #zaenkrat bo velikost polja fikso določena
-S=5
+S=6
 
 IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
@@ -410,7 +410,7 @@ class Gui():
         menu_moznosti.add_command(label="Človek proti računalniku", command=lambda:
                                         self.restart(Clovek(self), Racunalnik(self, AlfaBeta(globina))))
         menu_moznosti.add_command(label="Računalnik proti računalniku", command=lambda:
-                                        self.restart(Racunalnik(self, Minimax(globina)), Racunalnik(self, AlfaBeta(globina))))
+                                        self.restart(Racunalnik(self, AlfaBeta(globina)), Racunalnik(self, AlfaBeta(globina))))
         menu_moznosti.add_command(label="Računalnik proti človeku", command=lambda:
                                         self.restart(Racunalnik(self, AlfaBeta(globina)), Clovek(self)))
 
