@@ -6,16 +6,14 @@ import argparse
 
 
 PRAZNO = "."
-#zaenkrat bo velikost polja fikso določena
-S=6
-
 IGRALEC_MODRI = "M"
 IGRALEC_RDECI = "R"
 NEODLOCENO = "neodloceno"
 seznam=[]
 IGRLACA=[IGRALEC_MODRI,IGRALEC_RDECI]
-MINIMAX_GLOBINA=5
 
+SIZE=6
+MINIMAX_GLOBINA=5
 
 def nasprotnik(igralec):
     "Vrne nasprotnika"
@@ -31,13 +29,11 @@ def nasprotnik(igralec):
 class Igra():
 
     def __init__(self):
-        #za začetek bo igra na plošči SxS
-        #S (Size) bo vrednost, ki jo bo igralec imel možnost nastaviti v menuju z drsnikom
-        #zaenkrat bo S fiksno določen
-        self.plosca = [[PRAZNO for x in range(S)] for y in range(S)]
+        #za začetek bo igra na plošči SIZExSIZE
+        self.plosca = [[PRAZNO for x in range(SIZE)] for y in range(SIZE)]
         #nastavi začetni poziciji
-        self.plosca[S-1][0]= IGRALEC_MODRI
-        self.plosca[0][S-1]= IGRALEC_RDECI
+        self.plosca[SIZE-1][0]= IGRALEC_MODRI
+        self.plosca[0][SIZE-1]= IGRALEC_RDECI
         self.na_potezi = IGRALEC_MODRI
         self.zgodovina = []
 
@@ -46,8 +42,8 @@ class Igra():
         igralec = self.na_potezi
         self.plosca[y][x] = igralec
         seznam=[(y,x)]
-        for vrstica in range (0,S):
-            for stolpec in range(0,S):
+        for vrstica in range (0,SIZE):
+            for stolpec in range(0,SIZE):
                 if self.plosca[vrstica][stolpec]==nasprotnik(igralec):
                     if -2<(y-vrstica)<2:
                         if -2<(x-stolpec)<2:
@@ -64,7 +60,7 @@ class Igra():
         for (dy, dx) in ((-1,-1), (-1,0), (-1,1),
                  (0, -1),     (0, 1),
                  (1, -1), (1, 0), (1, 1)):
-            if 0 <= x + dx < S and 0 <= y + dy < S:
+            if 0 <= x + dx < SIZE and 0 <= y + dy < SIZE:
                 sosedi.append((y + dy, x + dx))
         logging.debug ("Sosedi od ({0}, {1}) so {2}".format(y,x,sosedi))
         return sosedi
@@ -81,7 +77,7 @@ class Igra():
 
     def veljavne_poteze(self):
         """Metoda vrača seznam veljavnih potez."""
-        poteze = [(vr,st) for vr in range(S) for st in range(S) if self.veljavna_poteza(vr, st)]
+        poteze = [(vr,st) for vr in range(SIZE) for st in range(SIZE) if self.veljavna_poteza(vr, st)]
         return poteze
 
     def je_konec(self):
@@ -92,8 +88,8 @@ class Igra():
         "Metoda na koncu igre preveri kdo je zmagal in s kakšnim rezultatom."
         steviloM=0
         steviloR=0
-        for vr in range(S):
-            for st in range(S):
+        for vr in range(SIZE):
+            for st in range(SIZE):
                 if self.plosca[vr][st]=='M':
                     steviloM+=1
                 elif self.plosca[vr][st]=='R':
@@ -112,13 +108,13 @@ class Igra():
     def kopija(self):
         """Vrne kopijo igre"""
         k = Igra()
-        k.plosca = [self.plosca[vr][:] for vr in range(S)]
+        k.plosca = [self.plosca[vr][:] for vr in range(SIZE)]
         k.na_potezi = self.na_potezi
         return k
 
     def shrani_pozicijo(self):
         """Shrani trenutno pozicijo."""
-        p = [self.plosca[vr][:] for vr in range(S)]
+        p = [self.plosca[vr][:] for vr in range(SIZE)]
         self.zgodovina.append((p, self.na_potezi))
 
     def razveljavi(self):
@@ -126,6 +122,7 @@ class Igra():
         (self.plosca, self.na_potezi) = self.zgodovina.pop()
 
 ################################################################################
+
 class Clovek():
      def __init__(self, gui):
          self.gui = gui
@@ -174,6 +171,7 @@ class Racunalnik():
         pass
         
 ###############################################################
+
 class Minimax():
     def __init__(self, globina):
         self.globina = globina
@@ -255,8 +253,8 @@ class Minimax():
         vrednost = 0
         stM=0
         stR=0
-        for vr in range(S):
-            for st in range(S):
+        for vr in range(SIZE):
+            for st in range(SIZE):
                 if self.igra.plosca[vr][st]=='M':
                     stM+=1
                 elif self.igra.plosca[vr][st]=='R':
@@ -272,6 +270,7 @@ class Minimax():
 
 
 ##############################################################################
+
 class AlfaBeta():
 
     ZMAGA = 1000000
@@ -307,8 +306,8 @@ class AlfaBeta():
         vrednost = 0
         stM=0
         stR=0
-        for vr in range(S):
-            for st in range(S):
+        for vr in range(SIZE):
+            for st in range(SIZE):
                 if self.igra.plosca[vr][st]=='M':
                     stM+=1
                 elif self.igra.plosca[vr][st]=='R':
@@ -380,7 +379,7 @@ class Gui():
 
     def __init__(self, root, globina):
 
-        self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
+        self.plosca = Canvas(root, width=100*(SIZE+1), height=100*(SIZE+1))
         self.plosca.grid(row=2, column=0)
 
         self.narisi_crte()
@@ -419,10 +418,9 @@ class Gui():
         """Nariše črte igralnega polja"""
         #velikost majhnih kvadratkov se ne prilagaja velikosti polja
         #dokler je velikost pola fiksno določena oz. max pribl. 8 to ni problem
-        #potem bo treba za številčnejšo mrežo manjšati kvadratke
-        mera=100*(S+1)
-        for i in range(0, S+1):
-            self.plosca.create_line(50 + 100 * i, 50, 50 + 100 * i, 100 * (S + 1) - 50)
+        mera=100*(SIZE+1)
+        for i in range(0, SIZE+1):
+            self.plosca.create_line(50 + 100 * i, 50, 50 + 100 * i, 100 * (SIZE + 1) - 50)
         for y in range (50, mera, 100):
             self.plosca.create_line(50, y, mera-50, y)
 
@@ -431,7 +429,7 @@ class Gui():
         st = (event.x - 50) // 100
         vr = (event.y - 50) // 100
         
-        if 0 <= st < S and 0 <= vr < S and self.igra.veljavna_poteza(vr, st):
+        if 0 <= st < SIZE and 0 <= vr < SIZE and self.igra.veljavna_poteza(vr, st):
             if self.igra.na_potezi == IGRALEC_MODRI:
                 self.igralec_modri.klik(vr,st)
                 
@@ -484,8 +482,8 @@ class Gui():
         self.prekini_igralce()
         self.plosca.delete(Gui.TAG_FIGURA)
         #pobarvaj začetni poziciji
-        self.pobarvaj_modro([(S-1,0)])
-        self.pobarvaj_rdece([(0,S-1)])
+        self.pobarvaj_modro([(SIZE-1,0)])
+        self.pobarvaj_rdece([(0,SIZE-1)])
         self.napis1.set("Space Me!")
         self.napis2.set("Na potezi je modri.")
         self.igra = Igra()
@@ -517,9 +515,8 @@ class Gui():
             self.napis2.set("Zmagal je rdeči s {1} proti {0}.".format(stanje[0], stanje[1]))
         else:
             self.napis2.set("Igra je neodločena!")
-        
+      
             
-
 ############################################################################################        
 
 if __name__ == "__main__":
