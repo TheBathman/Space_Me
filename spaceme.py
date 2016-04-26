@@ -1,6 +1,7 @@
 from tkinter import *
 import threading
 import logging
+import argparse
 
 
 
@@ -65,7 +66,7 @@ class Igra():
                  (1, -1), (1, 0), (1, 1)):
             if 0 <= x + dx < S and 0 <= y + dy < S:
                 sosedi.append((y + dy, x + dx))
-        # print ("Sosedi od ({0}, {1}) so {2}".format(y,x,sosedi))
+        logging.debug ("Sosedi od ({0}, {1}) so {2}".format(y,x,sosedi))
         return sosedi
 
     def veljavna_poteza(self, y, x):
@@ -81,12 +82,6 @@ class Igra():
     def veljavne_poteze(self):
         """Metoda vrača seznam veljavnih potez."""
         poteze = [(vr,st) for vr in range(S) for st in range(S) if self.veljavna_poteza(vr, st)]
-        # print ("*" * 50)
-        # print ("POZICIJA ({0}):\n{1}".format(
-        #     self.na_potezi,
-        #     "\n".join(["".join(v) for v in self.plosca])))
-        # print ("VELJAVNE: {0}".format(poteze))
-        # print ("*" * 50)
         return poteze
 
     def je_konec(self):
@@ -152,13 +147,14 @@ class Racunalnik():
         self.mislec = None
 
     def igraj(self):
-        """Zaenkrat odirga prvo veljavno potezo"""
+        """Požene vlakno za algoritem."""
         self.mislec = threading.Thread(target=lambda:
                     self.algoritem.izracunaj_potezo(self.gui.igra.kopija()))
         self.mislec.start()
         self.gui.plosca.after(100, self.preveri_potezo)
 
     def preveri_potezo(self):
+        """Vsakih 100ms preveri ali je algoritem že izračunal potezo."""
         if self.algoritem.poteza is not None:
             (vr, st)=self.algoritem.poteza
             self.gui.naredi_potezo(vr, st)
@@ -167,6 +163,7 @@ class Racunalnik():
             self.gui.plosca.after(100, self.preveri_potezo)
 
     def prekini(self):
+        """Prekine razmišljanje."""
         if self.mislec:
             self.algoritem.prekini()
             self.mislec.join()
@@ -199,7 +196,7 @@ class Minimax():
         self.igram = None
 
         if not self.prekinitev:
-            print ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
+            logging.debug ("minimax: poteza {0}, vrednost {1}".format(poteza, vrednost))
             self.poteza = poteza
             return poteza
 
@@ -248,13 +245,13 @@ class Minimax():
                             najboljsa_poteza = poteza
 
                 assert (najboljsa_poteza is not None), "minimax: izračunana poteza je None"
-                if globina >= MINIMAX_GLOBINA - 2:
-                    print (("---" * (MINIMAX_GLOBINA - globina)) + 
+                logging.debug (("---" * (MINIMAX_GLOBINA - globina)) + 
                            "{0}: poteza={1}, vrednost={2}, max={3}".format(
                                globina, najboljsa_poteza, vrednost_najboljse, maksimiziramo))
                 return (najboljsa_poteza, vrednost_najboljse)
 
     def vrednost_pozicije(self):
+        """Metoda ovrednoti pozicijo glede na to, koliko polj igralec na poziciji pridobi."""
         vrednost = 0
         stM=0
         stR=0
@@ -301,11 +298,12 @@ class AlfaBeta():
         self.igram = None
 
         if not self.prekinitev:
-            print ("alfabeta: poteza {0}, vrednost {1}".format(poteza, vrednost))
+            logging.debug ("alfabeta: poteza {0}, vrednost {1}".format(poteza, vrednost))
             self.poteza = poteza
             return poteza
 
     def vrednost_pozicije(self):
+        """Metoda ovrednoti pozicijo glede na to, koliko polj igralec na poziciji pridobi."""
         vrednost = 0
         stM=0
         stR=0
@@ -345,7 +343,6 @@ class AlfaBeta():
             else:
                 if maksimiziramo:
                     najboljsa_poteza = None
-                    #vrednost_najboljse = -Minimax.NESKONCNO
                     for poteza in self.igra.veljavne_poteze():
                         self.igra.shrani_pozicijo()
                         self.igra.naredi_potezo(poteza[0], poteza[1])
@@ -360,7 +357,6 @@ class AlfaBeta():
 
                 else:
                     najboljsa_poteza = None
-                    #vrednost_najboljse = Minimax.NESKONCNO
                     for poteza in self.igra.veljavne_poteze():
                         self.igra.shrani_pozicijo()
                         self.igra.naredi_potezo(poteza[0], poteza[1])
@@ -374,10 +370,7 @@ class AlfaBeta():
                     return (najboljsa_poteza, beta)
 
                 assert (najboljsa_poteza is not None), "alfabeta: izračunana poteza je None"
-                #return (najboljsa_poteza, vrednost_najboljse)
-
-
-
+                
 
 ##############################################################################
 
@@ -386,7 +379,7 @@ class Gui():
     TAG_FIGURA = 'figura'
 
     def __init__(self, root, globina):
-        #velikost okna se prilagaja velikosti polja
+
         self.plosca = Canvas(root, width=100*(S+1), height=100*(S+1))
         self.plosca.grid(row=2, column=0)
 
@@ -398,7 +391,7 @@ class Gui():
 
         self.igralec_modri = None
         self.igralec_rdeci = None
-        self.igra = None # Na začetku igre sploh ni, ker se nismo začeli
+        self.igra = None 
 
         #Glavni menu
         menu = Menu(root)
@@ -424,14 +417,12 @@ class Gui():
 
     def narisi_crte(self):
         """Nariše črte igralnega polja"""
-        #velikost majhnih kvadratkov se še ne prilagaja velikosti polja
+        #velikost majhnih kvadratkov se ne prilagaja velikosti polja
         #dokler je velikost pola fiksno določena oz. max pribl. 8 to ni problem
         #potem bo treba za številčnejšo mrežo manjšati kvadratke
         mera=100*(S+1)
         for i in range(0, S+1):
             self.plosca.create_line(50 + 100 * i, 50, 50 + 100 * i, 100 * (S + 1) - 50)
-        # for x in range (50, mera, 100):
-        #     self.plosca.create_line(x, 50, x, mera-50)
         for y in range (50, mera, 100):
             self.plosca.create_line(50, y, mera-50, y)
 
@@ -439,7 +430,7 @@ class Gui():
         """Pretvori klik v koordinate."""
         st = (event.x - 50) // 100
         vr = (event.y - 50) // 100
-        # print ("Klik na ({0}, {1}), vr je {2}, st je {3}".format(event.x, event.y, vr, st))
+        
         if 0 <= st < S and 0 <= vr < S and self.igra.veljavna_poteza(vr, st):
             if self.igra.na_potezi == IGRALEC_MODRI:
                 self.igralec_modri.klik(vr,st)
@@ -479,7 +470,6 @@ class Gui():
         for (vr,st) in seznam:
             x = 100 * (st + 1)
             y = 100 * (vr + 1)
-            # print ("Barvam modro vr={0}, st={1}, (x,y) = {2}".format(vr,st,(x,y)))
             self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="blue", tag=Gui.TAG_FIGURA)
         
     def pobarvaj_rdece(self, seznam):
@@ -487,7 +477,6 @@ class Gui():
         for (vr,st) in seznam:
             x = 100 * (st + 1)
             y = 100 * (vr + 1)
-            # print ("Barvam rdece vr={0}, st={1}, (x,y) = {2}".format(vr,st,(x,y)))
             self.plosca.create_rectangle(x-49, y-49, x+49, y+49, fill="red", tag=Gui.TAG_FIGURA)
         
     def restart(self, igralec_modri, igralec_rdeci):
@@ -506,6 +495,7 @@ class Gui():
         self.igralec_modri.igraj()
 
     def prekini_igralce(self):
+        """Sporoči igralcem naj nehajo razmišljati."""
         if self.igralec_modri:
             self.igralec_modri.prekini()
         if self.igralec_rdeci:
@@ -532,13 +522,27 @@ class Gui():
 
 ############################################################################################        
 
-
-#manjka še on top "menu" okno
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Igrica Space me")
+    
+    parser.add_argument('--globina',
+                        default=MINIMAX_GLOBINA,
+                        type=int,
+                        help='globina iskanja za minimax ali alfabeta algoritem')
+    
+    parser.add_argument('--debug',
+                        action='store_true',
+                        help='vklopi sporočila o dogajanju')
+
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     root = Tk()
     root.title("SpaceMe")
-    #manjkajo stavri, za katere ne vem kaj bodo počele
+    
     aplikacija = Gui(root, MINIMAX_GLOBINA)
 
     root.mainloop()
